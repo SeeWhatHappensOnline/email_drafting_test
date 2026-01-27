@@ -53,13 +53,25 @@ with col1:
     st.subheader("📄 Upload CSV")
     uploaded_file = st.file_uploader("Choose a CSV file", type=["csv"])
     
+    # Delimiter selection
+    delimiter = st.selectbox("CSV Delimiter", [",", ";", "Auto-detect"], index=2)
+    
     if uploaded_file is not None:
+        # Determine delimiter
+        if delimiter == "Auto-detect":
+            # Read first line to detect delimiter
+            first_line = uploaded_file.readline().decode('utf-8', errors='ignore')
+            uploaded_file.seek(0)
+            sep = ";" if first_line.count(";") > first_line.count(",") else ","
+        else:
+            sep = delimiter
+        
         # Try different encodings
         try:
-            df = pd.read_csv(uploaded_file)
+            df = pd.read_csv(uploaded_file, sep=sep)
         except UnicodeDecodeError:
             uploaded_file.seek(0)
-            df = pd.read_csv(uploaded_file, encoding='latin-1')
+            df = pd.read_csv(uploaded_file, encoding='latin-1', sep=sep)
         
         st.success(f"Loaded {len(df)} rows")
         
